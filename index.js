@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require("jsonwebtoken");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 4000;
@@ -12,23 +13,31 @@ app.use(cors());
 
 // mongoDB
 const client = new MongoClient(url, {
-    serverApi: {
-      version: ServerApiVersion.v1,
-      strict: true,
-      deprecationErrors: true,
-    }
-  });
-  async function run() {
-    try {
-      await client.connect();
-      
-      console.log("You successfully connected to MongoDB!");
-    } finally {
-      
-      await client.close();
-    }
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
+async function run() {
+  try {
+    await client.connect();
+
+    console.log("You successfully connected to MongoDB!");
+  } finally {
+    await client.close();
   }
-  run().catch(console.dir);
+}
+run().catch(console.dir);
+
+// JWT
+app.post('/authentication', async (req, res) => {
+  const userEmail = req.body;
+  const token = jwt.sign(userEmail, process.env.ACCESS_KEY_TOKEN, { expiresIn: process.env.TOKEN_EXPIRATION });
+  res.send({ token });
+})
+
 
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
